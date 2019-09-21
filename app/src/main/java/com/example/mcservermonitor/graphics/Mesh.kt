@@ -5,13 +5,12 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
-import java.util.jar.Attributes
 
-class Mesh(meshData: MeshData, private val shaderAttributes: IntArray) {
+class Mesh(private val meshData: MeshData, private val shaderAttributes: IntArray) {
 
     private val positionBufferHandle: Int
 
-    private val colorBufferHandle: Int
+    private val textureCoordsBufferHandle: Int
 
     private val indexBufferHandle: Int
 
@@ -46,20 +45,20 @@ class Mesh(meshData: MeshData, private val shaderAttributes: IntArray) {
 
 
 
-        // Color VBO
-        val colorBuffer: FloatBuffer = ByteBuffer.allocateDirect(meshData.colors.size * 4).run {
+        // Texture Coords VBO
+        val textureCoordsBuffer: FloatBuffer = ByteBuffer.allocateDirect(meshData.textureCoords.size * 4).run {
             order(ByteOrder.nativeOrder())
 
             asFloatBuffer().apply {
-                put(meshData.colors)
+                put(meshData.textureCoords)
                 flip()
             }
         }
 
-        colorBufferHandle = buffers[1]
-        GLES31.glBindBuffer(GLES31.GL_ARRAY_BUFFER, colorBufferHandle)
-        GLES31.glBufferData(GLES31.GL_ARRAY_BUFFER, colorBuffer.capacity() * 4, colorBuffer, GLES31.GL_STATIC_DRAW)
-        GLES31.glVertexAttribPointer(shaderAttributes[1], 3, GLES31.GL_FLOAT, false, 0, 0)
+        textureCoordsBufferHandle = buffers[1]
+        GLES31.glBindBuffer(GLES31.GL_ARRAY_BUFFER, textureCoordsBufferHandle)
+        GLES31.glBufferData(GLES31.GL_ARRAY_BUFFER, textureCoordsBuffer.capacity() * 4, textureCoordsBuffer, GLES31.GL_STATIC_DRAW)
+        GLES31.glVertexAttribPointer(shaderAttributes[1], 2, GLES31.GL_FLOAT, false, 0, 0)
 
         // Index VBO
         val indexBuffer: IntBuffer = ByteBuffer.allocateDirect(meshData.indices.size * 4).run {
@@ -86,6 +85,11 @@ class Mesh(meshData: MeshData, private val shaderAttributes: IntArray) {
     }
 
     fun draw() {
+        // Activate the first texture bank and bind the texture
+        GLES31.glActiveTexture(GLES31.GL_TEXTURE0)
+        GLES31.glBindTexture(GLES31.GL_TEXTURE_2D, meshData.textureHandle)
+
+        // Draw the mesh
         GLES31.glBindVertexArray(vaoId)
         GLES31.glEnableVertexAttribArray(shaderAttributes[0])
         GLES31.glEnableVertexAttribArray(shaderAttributes[1])
@@ -110,8 +114,7 @@ class Mesh(meshData: MeshData, private val shaderAttributes: IntArray) {
         GLES31.glDeleteVertexArrays(1, intArrayOf(vaoId), 0)
     }
 
-    data class MeshData(val positions: FloatArray, val colors: FloatArray, val indices: IntArray) {
-
+    data class MeshData(val positions: FloatArray, val textureCoords: FloatArray, val indices: IntArray, val textureHandle: Int) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -119,18 +122,21 @@ class Mesh(meshData: MeshData, private val shaderAttributes: IntArray) {
             other as MeshData
 
             if (!positions.contentEquals(other.positions)) return false
-            if (!colors.contentEquals(other.colors)) return false
+            if (!textureCoords.contentEquals(other.textureCoords)) return false
             if (!indices.contentEquals(other.indices)) return false
+            if (textureHandle != other.textureHandle) return false
 
             return true
         }
 
         override fun hashCode(): Int {
             var result = positions.contentHashCode()
-            result = 31 * result + colors.contentHashCode()
+            result = 31 * result + textureCoords.contentHashCode()
             result = 31 * result + indices.contentHashCode()
+            result = 31 * result + textureHandle
             return result
         }
+
 
     }
 

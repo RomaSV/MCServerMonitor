@@ -34,7 +34,7 @@ class ShaderProgram(private val context: Context) {
 
         GLES31.glLinkProgram(programHandle)
 
-        var linkStatus = IntArray(1)
+        val linkStatus = IntArray(1)
         GLES31.glGetProgramiv(programHandle, GLES31.GL_LINK_STATUS, linkStatus, 0)
         if (linkStatus[0] == 0) {
             Log.e("AH_SHIT", "Error compiling shader program")
@@ -70,6 +70,13 @@ class ShaderProgram(private val context: Context) {
             GLES31.glShaderSource(it, shaderCode)
             GLES31.glCompileShader(it)
             GLES31.glAttachShader(programHandle, it)
+
+            val compileStatus = IntArray(1)
+            GLES31.glGetShaderiv(it, GLES31.GL_COMPILE_STATUS, compileStatus, 0)
+            if (compileStatus[0] == 0) {
+                Log.e("SHADER_ERROR", "Error compiling the shader $type")
+            }
+
         }
     }
 }
