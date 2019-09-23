@@ -6,19 +6,23 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
-class Mesh(private val meshData: MeshData, private val shaderAttributes: IntArray) {
+class Mesh(private val meshData: MeshData) {
 
-    private val positionBufferHandle: Int
+    private var positionBufferHandle = 0
 
-    private val textureCoordsBufferHandle: Int
+    private var textureCoordsBufferHandle = 0
 
-    private val indexBufferHandle: Int
+    private var indexBufferHandle = 0
 
-    private val vaoId: Int
+    private var vaoId = 0
 
     private val vertexCount: Int = meshData.indices.size
 
-    init {
+    /**
+     * Pass the MeshData to OpenGL
+     * Must be called ONLY in the GLSurfaceView.Renderer methods
+     */
+    fun construct(shaderAttributes: IntArray) {
         val vaoIdBuffer = IntBuffer.allocate(1)
         GLES31.glGenVertexArrays(1, vaoIdBuffer)
         vaoId = vaoIdBuffer[0]
@@ -84,7 +88,11 @@ class Mesh(private val meshData: MeshData, private val shaderAttributes: IntArra
         indexBuffer.limit(0)
     }
 
-    fun draw() {
+    /**
+     * Render the mesh
+     * Must be called ONLY in the GLSurfaceView.Renderer methods
+     */
+    fun draw(shaderAttributes: IntArray) {
         // Activate the first texture bank and bind the texture
         GLES31.glActiveTexture(GLES31.GL_TEXTURE0)
         GLES31.glBindTexture(GLES31.GL_TEXTURE_2D, meshData.textureHandle)
