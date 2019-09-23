@@ -1,6 +1,6 @@
 package com.example.mcservermonitor.graphics
 
-class Scene() {
+class Scene(val camera: Camera = Camera()) {
 
     private val _sceneObjects: MutableList<SceneObject> = mutableListOf()
 

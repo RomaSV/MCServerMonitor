@@ -5,7 +5,7 @@ import com.example.mcservermonitor.model.Block
 import com.example.mcservermonitor.model.BlockTexturePositions
 import com.example.mcservermonitor.model.Chunk
 
-class ChunkMesh(chunk: Chunk, texturesHolder: Int) {
+class ChunkMesh(val chunk: Chunk, texturesHolder: Int) {
 
     private val blockTextureSize = 1f / 16f
 
@@ -16,16 +16,18 @@ class ChunkMesh(chunk: Chunk, texturesHolder: Int) {
         val vertexPositions = mutableListOf<Float>()
         val texturePositions = mutableListOf<Float>()
         val indices = mutableListOf<Int>()
-        for (y in 0..15) {
-            for (z in 0..15) {
-                for (x in 0..15) {
-                    val block = chunk.sections[0].blocks[y][z][x]
-                    if (block != Block.AIR && block.textureAtlasPos.sideX != -1) {
-                        Log.i("MESH", "Constructing mesh at $x, $y, $z")
-                        cubesCount++
-                        vertexPositions.addAll(getCubeVertexPositions(x, y, z).toList())
-                        texturePositions.addAll(getCubeTexturePositions(block.textureAtlasPos).toList())
-                        indices.addAll(getCubeIndices(cubesCount))
+        for (section in 0 until chunk.sections.size) {
+            for (y in 0..15) {
+                for (z in 0..15) {
+                    for (x in 0..15) {
+                        val block = chunk.sections[section].blocks[y][z][x]
+                        if (block != Block.AIR && block.textureAtlasPos.sideX != -1 && isVisible(section, x, y, z)) {
+                            Log.i("MESH", "Constructing mesh at $x, $y, $z")
+                            cubesCount++
+                            vertexPositions.addAll(getCubeVertexPositions(x, y, z).toList())
+                            texturePositions.addAll(getCubeTexturePositions(block.textureAtlasPos).toList())
+                            indices.addAll(getCubeIndices(cubesCount))
+                        }
                     }
                 }
             }
@@ -142,4 +144,13 @@ class ChunkMesh(chunk: Chunk, texturesHolder: Int) {
             4, 6, 7, 5, 4, 7
         ).map { element -> element + 20 * (cubesCount - 1) }
     }
+
+    private fun isVisible(section: Int, x: Int, y: Int, z: Int): Boolean =
+        x > 0 && chunk.sections[section].blocks[y][z][x - 1] == Block.AIR ||
+        x < 15 && chunk.sections[section].blocks[y][z][x + 1] == Block.AIR ||
+        y > 0 && chunk.sections[section].blocks[y - 1][z][x] == Block.AIR ||
+        y < 15 && chunk.sections[section].blocks[y + 1][z][x] == Block.AIR ||
+        z > 0 && chunk.sections[section].blocks[y][z - 1][x] == Block.AIR ||
+        z < 15 && chunk.sections[section].blocks[y][z + 1][x] == Block.AIR ||
+        x == 0 || x == 15 || y == 0 || y == 15 || z == 0 || z == 15
 }

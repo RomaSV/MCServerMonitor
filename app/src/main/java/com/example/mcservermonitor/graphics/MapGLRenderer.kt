@@ -9,6 +9,10 @@ import javax.microedition.khronos.opengles.GL10
 
 class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
+    private var orthoMode = true
+
+    private var ratio: Float = 0f
+
     private lateinit var shaderProgram: ShaderProgram
 
     private var positionHandle: Int = 0
@@ -16,7 +20,7 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
     private var colorHandle: Int = 0
 
     private var projectionMatrixHandle: Int = 0
-    private var worldMatrixHandle: Int = 0
+    private var modelViewMatrixHandle: Int = 0
     private var textureSamplerHandle: Int = 0
 
     private var sceneChanged = false
@@ -57,7 +61,7 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         colorHandle = GLES31.glGetAttribLocation(shaderProgram.programHandle, "aTexture")
         projectionMatrixHandle =
             GLES31.glGetUniformLocation(shaderProgram.programHandle, "uProjectionMatrix")
-        worldMatrixHandle = GLES31.glGetUniformLocation(shaderProgram.programHandle, "uWorldMatrix")
+        modelViewMatrixHandle = GLES31.glGetUniformLocation(shaderProgram.programHandle, "uModelViewMatrix")
         textureSamplerHandle =
             GLES31.glGetUniformLocation(shaderProgram.programHandle, "uTextureSampler")
 
@@ -72,10 +76,10 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
     override fun onSurfaceChanged(unused: GL10, width: Int, height: Int) {
         GLES31.glViewport(0, 0, width, height)
 
-        val ratio = width.toFloat() / height.toFloat()
+        ratio = width.toFloat() / height.toFloat()
         val near = 1f
         val far = 1000f
-        calcProjectionMatrix(ratio, near, far)
+        calcProjectionMatrix(ratio, near, far, ortho = orthoMode)
     }
 
     override fun onDrawFrame(unused: GL10) {
@@ -94,15 +98,12 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         GLES31.glUniformMatrix4fv(projectionMatrixHandle, 1, false, getProjectionMatrix(), 0)
         GLES31.glUniform1i(textureSamplerHandle, 0)
 
+        calcViewMatrix(scene.camera)
+        calcProjectionMatrix(ratio, 1f, 1000f, scene.camera.scale, orthoMode)
+
         for (sceneObject in scene.getSceneObjects) {
-            sceneObject.rotation[0]++
-            sceneObject.rotation[1]++
-            if (sceneObject.rotation[0] > 360f) {
-                sceneObject.rotation[0] = 0f
-                sceneObject.rotation[1] = 0f
-            }
-            calcWorldMatrix(sceneObject.position, sceneObject.rotation, sceneObject.scale)
-            GLES31.glUniformMatrix4fv(worldMatrixHandle, 1, false, getWorldMatrix(), 0)
+            calcModelViewMatrix(sceneObject, getViewMatrix())
+            GLES31.glUniformMatrix4fv(modelViewMatrixHandle, 1, false, getModelViewMatrix(), 0)
             sceneObject.mesh.draw(shaderAttributes)
         }
 
