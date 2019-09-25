@@ -7,7 +7,8 @@ import com.example.mcservermonitor.model.Chunk
 
 class ChunkMesh(val chunk: Chunk, texturesHolder: Int) {
 
-    private val blockTextureSize = 1f / 16f
+    private val blockTextureSizeX = 1f / 32f
+    private val blockTextureSizeY = 1f / 16f
 
     val mesh: Mesh
 
@@ -96,36 +97,36 @@ class ChunkMesh(val chunk: Chunk, texturesHolder: Int) {
 
     private fun getCubeTexturePositions(texture: BlockTexturePositions): FloatArray = floatArrayOf(
         // Front
-        texture.sideX * blockTextureSize, texture.sideY * blockTextureSize,
-        texture.sideX * blockTextureSize, (texture.sideY + 1) * blockTextureSize,
-        (texture.sideX + 1) * blockTextureSize, (texture.sideY + 1) * blockTextureSize,
-        (texture.sideX + 1) * blockTextureSize, texture.sideY * blockTextureSize,
+        texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
+        texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        (texture.sideX + 1) * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        (texture.sideX + 1) * blockTextureSizeX, texture.sideY * blockTextureSizeY,
 
         // Back
-        texture.sideX * blockTextureSize, texture.sideY * blockTextureSize,
-        (texture.sideX + 1) * blockTextureSize, texture.sideY * blockTextureSize,
-        texture.sideX * blockTextureSize, (texture.sideY + 1) * blockTextureSize,
-        (texture.sideX + 1) * blockTextureSize, (texture.sideY + 1) * blockTextureSize,
+        texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
+        (texture.sideX + 1) * blockTextureSizeX, texture.sideY * blockTextureSizeY,
+        texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        (texture.sideX + 1) * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
 
         // For text coords in top face
-        texture.topX * blockTextureSize, texture.topY * blockTextureSize,
-        (texture.topX + 1) * blockTextureSize, texture.topY * blockTextureSize,
-        texture.topX * blockTextureSize, (texture.topY + 1) * blockTextureSize,
-        (texture.topX + 1) * blockTextureSize, (texture.topY + 1) * blockTextureSize,
+        texture.topX * blockTextureSizeX, texture.topY * blockTextureSizeY,
+        (texture.topX + 1) * blockTextureSizeX, texture.topY * blockTextureSizeY,
+        texture.topX * blockTextureSizeX, (texture.topY + 1) * blockTextureSizeY,
+        (texture.topX + 1) * blockTextureSizeX, (texture.topY + 1) * blockTextureSizeY,
 
         // For text coords in right face
-        texture.sideX * blockTextureSize, texture.sideY * blockTextureSize,
-        texture.sideX * blockTextureSize, (texture.sideY + 1) * blockTextureSize,
+        texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
+        texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
 
         // For text coords in left face
-        (texture.sideX + 1) * blockTextureSize, texture.sideY * blockTextureSize,
-        (texture.sideX + 1) * blockTextureSize, (texture.sideY + 1) * blockTextureSize,
+        (texture.sideX + 1) * blockTextureSizeX, texture.sideY * blockTextureSizeY,
+        (texture.sideX + 1) * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
 
         // For text coords in bottom face
-        texture.bottomX * blockTextureSize, texture.bottomY * blockTextureSize,
-        (texture.bottomX + 1) * blockTextureSize, texture.bottomY * blockTextureSize,
-        texture.bottomX * blockTextureSize, (texture.bottomY + 1) * blockTextureSize,
-        (texture.bottomX + 1) * blockTextureSize, (texture.bottomY + 1) * blockTextureSize
+        texture.bottomX * blockTextureSizeX, texture.bottomY * blockTextureSizeY,
+        (texture.bottomX + 1) * blockTextureSizeX, texture.bottomY * blockTextureSizeY,
+        texture.bottomX * blockTextureSizeX, (texture.bottomY + 1) * blockTextureSizeY,
+        (texture.bottomX + 1) * blockTextureSizeX, (texture.bottomY + 1) * blockTextureSizeY
     )
 
     private fun getCubeIndices(cubesCount: Int): List<Int> {

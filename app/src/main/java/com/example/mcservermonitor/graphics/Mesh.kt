@@ -115,7 +115,7 @@ class Mesh(private val meshData: MeshData) {
 
         //Delete all VBOs
         GLES31.glBindBuffer(GLES31.GL_ARRAY_BUFFER, 0)
-        GLES31.glDeleteBuffers(3, intArrayOf(positionBufferHandle, indexBufferHandle), 0)
+        GLES31.glDeleteBuffers(3, intArrayOf(positionBufferHandle, indexBufferHandle, textureCoordsBufferHandle), 0)
 
         //Delete the VAO
         GLES31.glBindVertexArray(0)

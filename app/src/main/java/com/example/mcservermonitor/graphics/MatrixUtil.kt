@@ -9,11 +9,11 @@ private val modelMatrix = FloatArray(16)
 
 fun calcProjectionMatrix(ratio: Float, near: Float, far: Float, scale: Float = 1f, ortho: Boolean = false) {
     if (ortho) {
-        Matrix.orthoM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, near * scale, far * scale)
-        Matrix.scaleM(projectionMatrix, 0, scale, scale, scale)
+        Matrix.orthoM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, near, far)
     } else {
         Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, near, far)
     }
+    Matrix.scaleM(projectionMatrix, 0, scale, scale, scale)
 }
 
 fun calcModelViewMatrix(obj: SceneObject, viewMatrix: FloatArray) {

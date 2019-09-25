@@ -3,14 +3,16 @@ package com.example.mcservermonitor
 import android.content.Context
 import android.opengl.GLSurfaceView
 import android.os.AsyncTask
+import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import com.example.mcservermonitor.graphics.*
-import com.example.mcservermonitor.model.Block
-import com.example.mcservermonitor.model.Chunk
-import com.example.mcservermonitor.model.Section
+import com.example.mcservermonitor.model.*
+import java.io.File
+import java.io.FileOutputStream
 
-class MapView(context: Context) : GLSurfaceView(context) {
+class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
+    GLSurfaceView(context, attrs) {
 
     private var previousX: Float = 0f
     private var previousY: Float = 0f
@@ -21,6 +23,14 @@ class MapView(context: Context) : GLSurfaceView(context) {
 
     private val renderer: MapGLRenderer
 
+    // Temp file to test map construction
+    private val regionFile: File
+
+    var currentChunkX: Int = 1
+        private set
+    var currentChunkZ: Int = 2
+        private set
+
     val scene = Scene(
         Camera(
             position = floatArrayOf(-2f, 3f, 0f),
@@ -30,17 +40,23 @@ class MapView(context: Context) : GLSurfaceView(context) {
     )
 
     init {
-
         setEGLContextClientVersion(3)
-
         renderer = MapGLRenderer(context)
         setRenderer(renderer)
-
-        ConstructMapTask().execute(renderer)
-
         scaleGestureDetector = ScaleGestureDetector(context, ScaleListener())
+        regionFile = createTempFile("region", "mca", context.cacheDir)
+        val inputStream = context.assets.open("test-region.mca")
+        val outputStream = FileOutputStream(regionFile)
+        val buffer = ByteArray(1024 * 512)
+        var count = inputStream.read(buffer)
+        while (count != -1) {
+            outputStream.write(buffer, 0, count)
+            count = inputStream.read(buffer)
+        }
+        outputStream.close()
+        inputStream.close()
+        ConstructMapTask().execute(renderer)
     }
-
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
 
@@ -57,8 +73,8 @@ class MapView(context: Context) : GLSurfaceView(context) {
         when (event.action) {
             MotionEvent.ACTION_MOVE -> {
                 if (!rescaled) {
-                    var dx: Float = x - previousX
-                    var dy: Float = y - previousY
+                    val dx: Float = x - previousX
+                    val dy: Float = y - previousY
 
                     scene.camera.movePosition(
                         -dx * moveSpeed / scene.camera.scale,
@@ -77,7 +93,14 @@ class MapView(context: Context) : GLSurfaceView(context) {
         return true
     }
 
-    inner class ScaleListener: ScaleGestureDetector.SimpleOnScaleGestureListener() {
+    fun updateCoords(x: Int, z: Int) {
+        if (x !in 0..15 || z !in 0..15) return
+        currentChunkX = x
+        currentChunkZ = z
+        ConstructMapTask().execute(renderer)
+    }
+
+    inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             scene.camera.scale *= detector.scaleFactor
             return true
@@ -91,16 +114,11 @@ class MapView(context: Context) : GLSurfaceView(context) {
                 Thread.sleep(100)
             }
 
-            // setup scene
-            val sectionData = Array(16) { Array(16) { Array(16) { Block.AIR } } }
-            sectionData[0][0][0] = Block.GRASS_BLOCK
-            sectionData[0][0][1] = Block.GRASS_BLOCK
-            sectionData[1][1][1] = Block.GRASS_BLOCK
-            sectionData[0][1][1] = Block.DIRT
-            sectionData[0][2][1] = Block.SAND
-            sectionData[0][1][2] = Block.SAND
-            sectionData[0][1][0] = Block.SAND
-            sectionData[0][2][0] = Block.WATER
+            scene.clear()
+
+            val mapDecoder = MapDecoder()
+
+            val sectionData = mapDecoder.decodeRegionFile(regionFile, currentChunkX, currentChunkZ)
             val chunkSection = Section(sectionData)
             val chunk = Chunk(listOf(chunkSection))
 

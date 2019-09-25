@@ -15,4 +15,8 @@ class Scene(val camera: Camera = Camera()) {
         _sceneObjects.remove(obj)
     }
 
+    fun clear() {
+        _sceneObjects.clear()
+    }
+
 }

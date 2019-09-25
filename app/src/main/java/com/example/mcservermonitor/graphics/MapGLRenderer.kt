@@ -24,6 +24,7 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
     private var textureSamplerHandle: Int = 0
 
     private var sceneChanged = false
+    private val drawnObjects: MutableList<SceneObject> = mutableListOf()
 
     private lateinit var shaderAttributes: IntArray
 
@@ -77,17 +78,25 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         GLES31.glViewport(0, 0, width, height)
 
         ratio = width.toFloat() / height.toFloat()
-        val near = 1f
-        val far = 1000f
+        val near = -10000f
+        val far = 10000f
         calcProjectionMatrix(ratio, near, far, ortho = orthoMode)
     }
 
     override fun onDrawFrame(unused: GL10) {
 
         if (sceneChanged) {
+            val objIter = drawnObjects.iterator()
+            while (objIter.hasNext()) {
+                objIter.next().mesh.cleanUp()
+                objIter.remove()
+            }
+
             for (obj in scene.getSceneObjects) {
                 obj.mesh.construct(shaderAttributes)
+                drawnObjects.add(obj)
             }
+
             sceneChanged = false
         }
 
@@ -99,9 +108,9 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         GLES31.glUniform1i(textureSamplerHandle, 0)
 
         calcViewMatrix(scene.camera)
-        calcProjectionMatrix(ratio, 1f, 1000f, scene.camera.scale, orthoMode)
+        calcProjectionMatrix(ratio, -10000f, 10000f, scene.camera.scale, orthoMode)
 
-        for (sceneObject in scene.getSceneObjects) {
+        for (sceneObject in drawnObjects) {
             calcModelViewMatrix(sceneObject, getViewMatrix())
             GLES31.glUniformMatrix4fv(modelViewMatrixHandle, 1, false, getModelViewMatrix(), 0)
             sceneObject.mesh.draw(shaderAttributes)
