@@ -6,6 +6,7 @@ import android.os.AsyncTask
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
+import android.widget.ProgressBar
 import com.example.mcservermonitor.graphics.*
 import com.example.mcservermonitor.model.*
 import java.io.File
@@ -26,10 +27,7 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
     // Temp file to test map construction
     private val regionFile: File
 
-    var currentChunkX: Int = 1
-        private set
-    var currentChunkZ: Int = 2
-        private set
+    lateinit var progressBar: ProgressBar
 
     val scene = Scene(
         Camera(
@@ -44,6 +42,7 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         renderer = MapGLRenderer(context)
         setRenderer(renderer)
         scaleGestureDetector = ScaleGestureDetector(context, ScaleListener())
+
         regionFile = createTempFile("region", "mca", context.cacheDir)
         val inputStream = context.assets.open("test-region.mca")
         val outputStream = FileOutputStream(regionFile)
@@ -55,6 +54,7 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         }
         outputStream.close()
         inputStream.close()
+
         ConstructMapTask().execute(renderer)
     }
 
@@ -93,13 +93,6 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         return true
     }
 
-    fun updateCoords(x: Int, z: Int) {
-        if (x !in 0..15 || z !in 0..15) return
-        currentChunkX = x
-        currentChunkZ = z
-        ConstructMapTask().execute(renderer)
-    }
-
     inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             scene.camera.scale *= detector.scaleFactor
@@ -107,7 +100,7 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         }
     }
 
-    inner class ConstructMapTask : AsyncTask<MapGLRenderer, Void, Any>() {
+    inner class ConstructMapTask : AsyncTask<MapGLRenderer, Int, Any>() {
 
         override fun doInBackground(vararg renderer: MapGLRenderer) {
             while (!renderer[0].ready) {
@@ -118,17 +111,26 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
 
             val mapDecoder = MapDecoder()
 
-            val sectionData = mapDecoder.decodeRegionFile(regionFile, currentChunkX, currentChunkZ)
-            val chunkSection = Section(sectionData)
-            val chunk = Chunk(listOf(chunkSection))
+            for (z in 0..7) {
+                for (x in 0..7) {
+                    val chunk = mapDecoder.decodeRegionFile(
+                        regionFile, x, z
+                    )
 
-            val chunkMesh = ChunkMesh(chunk, renderer[0].textureHandle)
-            val chunkObj = SceneObject(chunkMesh.mesh)
-            chunkObj.position = floatArrayOf(0f, 0f, -5f)
+                    val chunkMesh = ChunkMesh(chunk, renderer[0].textureHandle)
+                    val chunkObj = SceneObject(chunkMesh.mesh)
+                    chunkObj.position = floatArrayOf((x - 1f) * 16, -4f * 16, (z - 1f) * 16)
 
-            scene.addSceneObject(chunkObj)
+                    scene.addSceneObject(chunkObj)
+                    publishProgress(x + z * 16)
+                }
+            }
 
             renderer[0].scene = scene
+        }
+
+        override fun onProgressUpdate(vararg values: Int?) {
+            if (values[0] != null) progressBar.progress = values[0]!!
         }
 
     }

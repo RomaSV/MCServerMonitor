@@ -12,6 +12,8 @@ class Mesh(private val meshData: MeshData) {
 
     private var textureCoordsBufferHandle = 0
 
+    private var normalBufferHandle = 0
+
     private var indexBufferHandle = 0
 
     private var vaoId = 0
@@ -29,8 +31,8 @@ class Mesh(private val meshData: MeshData) {
         GLES31.glBindVertexArray(vaoId)
 
 
-        val buffers = IntArray(3)
-        GLES31.glGenBuffers(3, buffers, 0)
+        val buffers = IntArray(4)
+        GLES31.glGenBuffers(4, buffers, 0)
 
         // Position VBO
         val vertexBuffer: FloatBuffer = ByteBuffer.allocateDirect(meshData.positions.size * 4).run {
@@ -44,25 +46,54 @@ class Mesh(private val meshData: MeshData) {
 
         positionBufferHandle = buffers[0]
         GLES31.glBindBuffer(GLES31.GL_ARRAY_BUFFER, positionBufferHandle)
-        GLES31.glBufferData(GLES31.GL_ARRAY_BUFFER, vertexBuffer.capacity() * 4, vertexBuffer, GLES31.GL_STATIC_DRAW)
+        GLES31.glBufferData(
+            GLES31.GL_ARRAY_BUFFER,
+            vertexBuffer.capacity() * 4,
+            vertexBuffer,
+            GLES31.GL_STATIC_DRAW
+        )
         GLES31.glVertexAttribPointer(shaderAttributes[0], 3, GLES31.GL_FLOAT, false, 0, 0)
 
 
-
         // Texture Coords VBO
-        val textureCoordsBuffer: FloatBuffer = ByteBuffer.allocateDirect(meshData.textureCoords.size * 4).run {
-            order(ByteOrder.nativeOrder())
+        val textureCoordsBuffer: FloatBuffer =
+            ByteBuffer.allocateDirect(meshData.textureCoords.size * 4).run {
+                order(ByteOrder.nativeOrder())
 
-            asFloatBuffer().apply {
-                put(meshData.textureCoords)
-                flip()
+                asFloatBuffer().apply {
+                    put(meshData.textureCoords)
+                    flip()
+                }
             }
-        }
 
         textureCoordsBufferHandle = buffers[1]
         GLES31.glBindBuffer(GLES31.GL_ARRAY_BUFFER, textureCoordsBufferHandle)
-        GLES31.glBufferData(GLES31.GL_ARRAY_BUFFER, textureCoordsBuffer.capacity() * 4, textureCoordsBuffer, GLES31.GL_STATIC_DRAW)
+        GLES31.glBufferData(
+            GLES31.GL_ARRAY_BUFFER,
+            textureCoordsBuffer.capacity() * 4,
+            textureCoordsBuffer,
+            GLES31.GL_STATIC_DRAW
+        )
         GLES31.glVertexAttribPointer(shaderAttributes[1], 2, GLES31.GL_FLOAT, false, 0, 0)
+
+        // Normals VBO
+        val normalBuffer: FloatBuffer = ByteBuffer.allocateDirect(meshData.normals.size * 4).run {
+            order(ByteOrder.nativeOrder())
+
+            asFloatBuffer().apply {
+                put(meshData.normals)
+                flip()
+            }
+        }
+        normalBufferHandle = buffers[2]
+        GLES31.glBindBuffer(GLES31.GL_ARRAY_BUFFER, normalBufferHandle)
+        GLES31.glBufferData(
+            GLES31.GL_ARRAY_BUFFER,
+            normalBuffer.capacity() * 4,
+            normalBuffer,
+            GLES31.GL_STATIC_DRAW
+        )
+        GLES31.glVertexAttribPointer(shaderAttributes[2], 3, GLES31.GL_FLOAT, false, 0, 0)
 
         // Index VBO
         val indexBuffer: IntBuffer = ByteBuffer.allocateDirect(meshData.indices.size * 4).run {
@@ -74,10 +105,14 @@ class Mesh(private val meshData: MeshData) {
             }
         }
 
-
-        indexBufferHandle = buffers[2]
+        indexBufferHandle = buffers[3]
         GLES31.glBindBuffer(GLES31.GL_ELEMENT_ARRAY_BUFFER, indexBufferHandle)
-        GLES31.glBufferData(GLES31.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.capacity() * 4, indexBuffer, GLES31.GL_STATIC_DRAW)
+        GLES31.glBufferData(
+            GLES31.GL_ELEMENT_ARRAY_BUFFER,
+            indexBuffer.capacity() * 4,
+            indexBuffer,
+            GLES31.GL_STATIC_DRAW
+        )
 
         // Unbind buffer and vertex array
         GLES31.glBindBuffer(GLES31.GL_ARRAY_BUFFER, 0)
@@ -85,6 +120,8 @@ class Mesh(private val meshData: MeshData) {
 
         vaoIdBuffer.limit(0)
         vertexBuffer.limit(0)
+        textureCoordsBuffer.limit(0)
+        normalBuffer.limit(0)
         indexBuffer.limit(0)
     }
 
@@ -115,14 +152,29 @@ class Mesh(private val meshData: MeshData) {
 
         //Delete all VBOs
         GLES31.glBindBuffer(GLES31.GL_ARRAY_BUFFER, 0)
-        GLES31.glDeleteBuffers(3, intArrayOf(positionBufferHandle, indexBufferHandle, textureCoordsBufferHandle), 0)
+        GLES31.glDeleteBuffers(
+            4,
+            intArrayOf(
+                positionBufferHandle,
+                indexBufferHandle,
+                textureCoordsBufferHandle,
+                normalBufferHandle
+            ),
+            0
+        )
 
         //Delete the VAO
         GLES31.glBindVertexArray(0)
         GLES31.glDeleteVertexArrays(1, intArrayOf(vaoId), 0)
     }
 
-    data class MeshData(val positions: FloatArray, val textureCoords: FloatArray, val indices: IntArray, val textureHandle: Int) {
+    data class MeshData(
+        val positions: FloatArray,
+        val textureCoords: FloatArray,
+        val normals: FloatArray,
+        val indices: IntArray,
+        val textureHandle: Int
+    ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -131,6 +183,7 @@ class Mesh(private val meshData: MeshData) {
 
             if (!positions.contentEquals(other.positions)) return false
             if (!textureCoords.contentEquals(other.textureCoords)) return false
+            if (!normals.contentEquals(other.normals)) return false
             if (!indices.contentEquals(other.indices)) return false
             if (textureHandle != other.textureHandle) return false
 
@@ -140,11 +193,11 @@ class Mesh(private val meshData: MeshData) {
         override fun hashCode(): Int {
             var result = positions.contentHashCode()
             result = 31 * result + textureCoords.contentHashCode()
+            result = 31 * result + normals.contentHashCode()
             result = 31 * result + indices.contentHashCode()
             result = 31 * result + textureHandle
             return result
         }
-
 
     }
 

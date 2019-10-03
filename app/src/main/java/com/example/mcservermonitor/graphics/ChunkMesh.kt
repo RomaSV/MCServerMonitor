@@ -1,11 +1,10 @@
 package com.example.mcservermonitor.graphics
 
-import android.util.Log
 import com.example.mcservermonitor.model.Block
 import com.example.mcservermonitor.model.BlockTexturePositions
 import com.example.mcservermonitor.model.Chunk
 
-class ChunkMesh(val chunk: Chunk, texturesHolder: Int) {
+class ChunkMesh(private val chunk: Chunk, texturesHolder: Int) {
 
     private val blockTextureSizeX = 1f / 32f
     private val blockTextureSizeY = 1f / 16f
@@ -16,16 +15,26 @@ class ChunkMesh(val chunk: Chunk, texturesHolder: Int) {
         var cubesCount = 0
         val vertexPositions = mutableListOf<Float>()
         val texturePositions = mutableListOf<Float>()
+        val normals = mutableListOf<Float>()
         val indices = mutableListOf<Int>()
-        for (section in 0 until chunk.sections.size) {
+        for (section in chunk.sections.keys) {
             for (y in 0..15) {
                 for (z in 0..15) {
                     for (x in 0..15) {
-                        val block = chunk.sections[section].blocks[y][z][x]
-                        if (block != Block.AIR && block.textureAtlasPos.sideX != -1 && isVisible(section, x, y, z)) {
-                            Log.i("MESH", "Constructing mesh at $x, $y, $z")
+                        val block =
+                            chunk.sections[section]!!.blocks[y][z][x] // section shouldn't be null
+                        if (block != Block.AIR && block.textureAtlasPos.sideX != -1
+                            && isVisible(section, x, y, z)
+                        ) {
                             cubesCount++
-                            vertexPositions.addAll(getCubeVertexPositions(x, y, z).toList())
+                            vertexPositions.addAll(
+                                getCubeVertexPositions(
+                                    x,
+                                    y + (section * 16),
+                                    z
+                                ).toList()
+                            )
+                            normals.addAll(getCubeNormals().toList())
                             texturePositions.addAll(getCubeTexturePositions(block.textureAtlasPos).toList())
                             indices.addAll(getCubeIndices(cubesCount))
                         }
@@ -37,6 +46,7 @@ class ChunkMesh(val chunk: Chunk, texturesHolder: Int) {
         val meshData = Mesh.MeshData(
             vertexPositions.toFloatArray(),
             texturePositions.toFloatArray(),
+            normals.toFloatArray(),
             indices.toIntArray(),
             texturesHolder
         )
@@ -45,113 +55,138 @@ class ChunkMesh(val chunk: Chunk, texturesHolder: Int) {
     }
 
     private fun getCubeVertexPositions(x: Int, y: Int, z: Int): FloatArray = floatArrayOf(
+        // RIGHT
         // V0
-        x + -0.5f, y + 0.5f, z + 0.5f,
+        x - 0.5f, y + 0.5f, z + 0.5f,
         // V1
-        x + -0.5f, y + -0.5f, z + 0.5f,
+        x - 0.5f, y - 0.5f, z + 0.5f,
         // V2
-        x + 0.5f, y + -0.5f, z + 0.5f,
+        x + 0.5f, y - 0.5f, z + 0.5f,
         // V3
         x + 0.5f, y + 0.5f, z + 0.5f,
+
+        // TOP
         // V4
-        x + -0.5f, y + 0.5f, z + -0.5f,
+        x - 0.5f, y + 0.5f, z - 0.5f,
         // V5
-        x + 0.5f, y + 0.5f, z + -0.5f,
+        x - 0.5f, y + 0.5f, z + 0.5f,
         // V6
-        x + -0.5f, y + -0.5f, z + -0.5f,
+        x + 0.5f, y + 0.5f, z + 0.5f,
         // V7
-        x + 0.5f, y + -0.5f, z + -0.5f,
+        x + 0.5f, y + 0.5f, z - 0.5f,
 
-        // For text coords in top face
-        // V8: V4 repeated
-        x + -0.5f, y + 0.5f, z + -0.5f,
-        // V9: V5 repeated
-        x + 0.5f, y + 0.5f, z + -0.5f,
-        // V10: V0 repeated
-        x + -0.5f, y + 0.5f, z + 0.5f,
-        // V11: V3 repeated
+        // FRONT
+        // V8
         x + 0.5f, y + 0.5f, z + 0.5f,
+        // V9
+        x + 0.5f, y - 0.5f, z + 0.5f,
+        // V10
+        x + 0.5f, y - 0.5f, z - 0.5f,
+        // V11
+        x + 0.5f, y + 0.5f, z - 0.5f,
 
-        // For text coords in right face
-        // V12: V3 repeated
-        x + 0.5f, y + 0.5f, z + 0.5f,
-        // V13: V2 repeated
-        x + 0.5f, y + -0.5f, z + 0.5f,
+        // BACK
+        // V12
+        x - 0.5f, y - 0.5f, z - 0.5f,
+        // V13
+        x - 0.5f, y - 0.5f, z + 0.5f,
+        // V14
+        x - 0.5f, y + 0.5f, z + 0.5f,
+        // V15
+        x - 0.5f, y + 0.5f, z - 0.5f,
 
-        // For text coords in left face
-        // V14: V0 repeated
-        x + -0.5f, y + 0.5f, z + 0.5f,
-        // V15: V1 repeated
-        x + -0.5f, y + -0.5f, z + 0.5f,
+        // BOTTOM
+        // V16
+        x + 0.5f, y - 0.5f, z + 0.5f,
+        // V17
+        x - 0.5f, y - 0.5f, z + 0.5f,
+        // V18
+        x - 0.5f, y - 0.5f, z - 0.5f,
+        // V19
+        x + 0.5f, y - 0.5f, z - 0.5f,
 
-        // For text coords in bottom face
-        // V16: V6 repeated
-        x + -0.5f, y + -0.5f, z + -0.5f,
-        // V17: V7 repeated
-        x + 0.5f, y + -0.5f, z + -0.5f,
-        // V18: V1 repeated
-        x + -0.5f, y + -0.5f, z + 0.5f,
-        // V19: V2 repeated
-        x + 0.5f, y + -0.5f, z + 0.5f
+        // LEFT
+        // V20
+        x + 0.5f, y - 0.5f, z - 0.5f,
+        // V21
+        x - 0.5f, y - 0.5f, z - 0.5f,
+        // V22
+        x - 0.5f, y + 0.5f, z - 0.5f,
+        // V23
+        x + 0.5f, y + 0.5f, z - 0.5f
     )
 
     private fun getCubeTexturePositions(texture: BlockTexturePositions): FloatArray = floatArrayOf(
-        // Front
-        texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
-        texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
-        (texture.sideX + 1) * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        // Right
         (texture.sideX + 1) * blockTextureSizeX, texture.sideY * blockTextureSizeY,
-
-        // Back
-        texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
-        (texture.sideX + 1) * blockTextureSizeX, texture.sideY * blockTextureSizeY,
-        texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
         (texture.sideX + 1) * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
 
-        // For text coords in top face
+        // Top
         texture.topX * blockTextureSizeX, texture.topY * blockTextureSizeY,
         (texture.topX + 1) * blockTextureSizeX, texture.topY * blockTextureSizeY,
-        texture.topX * blockTextureSizeX, (texture.topY + 1) * blockTextureSizeY,
         (texture.topX + 1) * blockTextureSizeX, (texture.topY + 1) * blockTextureSizeY,
+        texture.topX * blockTextureSizeX, (texture.topY + 1) * blockTextureSizeY,
 
-        // For text coords in right face
-        texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
-        texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
-
-        // For text coords in left face
+        // Front
         (texture.sideX + 1) * blockTextureSizeX, texture.sideY * blockTextureSizeY,
         (texture.sideX + 1) * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
 
-        // For text coords in bottom face
+        // Back (front)
+        texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        (texture.sideX + 1) * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        (texture.sideX + 1) * blockTextureSizeX, texture.sideY * blockTextureSizeY,
+        texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
+
+        // Bottom
+
+        (texture.bottomX + 1) * blockTextureSizeX, (texture.bottomY + 1) * blockTextureSizeY,
+        texture.bottomX * blockTextureSizeX, (texture.bottomY + 1) * blockTextureSizeY,
         texture.bottomX * blockTextureSizeX, texture.bottomY * blockTextureSizeY,
         (texture.bottomX + 1) * blockTextureSizeX, texture.bottomY * blockTextureSizeY,
-        texture.bottomX * blockTextureSizeX, (texture.bottomY + 1) * blockTextureSizeY,
-        (texture.bottomX + 1) * blockTextureSizeX, (texture.bottomY + 1) * blockTextureSizeY
+
+        // Left
+        (texture.sideX + 1) * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
+        texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
+        (texture.sideX + 1) * blockTextureSizeX, texture.sideY * blockTextureSizeY
+    )
+
+    private fun getCubeNormals(): FloatArray = floatArrayOf(
+        0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f,
+        0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f,
+        1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f,
+        -1f, 0f, 0f, -1f, 0f, 0f, -1f, 0f, 0f, -1f, 0f, 0f,
+        0f, -1f, 0f, 0f, -1f, 0f, 0f, -1f, 0f, 0f, -1f, 0f,
+        0f, 0f, -1f, 0f, 0f, -1f, 0f, 0f, -1f, 0f, 0f, -1f
     )
 
     private fun getCubeIndices(cubesCount: Int): List<Int> {
         return listOf(
-            // Front face
-            0, 1, 3, 3, 1, 2,
-            // Top Face
-            8, 10, 11, 9, 8, 11,
             // Right face
-            12, 13, 7, 5, 12, 7,
-            // Left face
-            14, 15, 6, 4, 14, 6,
-            // Bottom face
-            16, 18, 19, 17, 16, 19,
+            0, 1, 3, 3, 1, 2,
+            // Top face
+            4, 5, 6, 7, 4, 6,
+            // Front face
+            8, 9, 10, 11, 8, 10,
             // Back face
-            4, 6, 7, 5, 4, 7
-        ).map { element -> element + 20 * (cubesCount - 1) }
+            12, 13, 14, 12, 14, 15,
+            // Bottom face
+            16, 17, 18, 16, 18, 19,
+            // Left face
+            20, 21, 22, 20, 22, 23
+        ).map { element -> element + 24 * (cubesCount - 1) }
     }
 
     private fun isVisible(section: Int, x: Int, y: Int, z: Int): Boolean =
-        x > 0 && chunk.sections[section].blocks[y][z][x - 1] == Block.AIR ||
-        x < 15 && chunk.sections[section].blocks[y][z][x + 1] == Block.AIR ||
-        y > 0 && chunk.sections[section].blocks[y - 1][z][x] == Block.AIR ||
-        y < 15 && chunk.sections[section].blocks[y + 1][z][x] == Block.AIR ||
-        z > 0 && chunk.sections[section].blocks[y][z - 1][x] == Block.AIR ||
-        z < 15 && chunk.sections[section].blocks[y][z + 1][x] == Block.AIR ||
-        x == 0 || x == 15 || y == 0 || y == 15 || z == 0 || z == 15
+        x > 0 && chunk.sections[section]!!.blocks[y][z][x - 1] == Block.AIR ||
+                x < 15 && chunk.sections[section]!!.blocks[y][z][x + 1] == Block.AIR ||
+                y > 0 && chunk.sections[section]!!.blocks[y - 1][z][x] == Block.AIR ||
+                y < 15 && chunk.sections[section]!!.blocks[y + 1][z][x] == Block.AIR ||
+                z > 0 && chunk.sections[section]!!.blocks[y][z - 1][x] == Block.AIR ||
+                z < 15 && chunk.sections[section]!!.blocks[y][z + 1][x] == Block.AIR ||
+                x == 0 || x == 15 || y == 0 || y == 15 || z == 0 || z == 15
 }

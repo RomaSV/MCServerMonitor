@@ -1,15 +1,18 @@
 package com.example.mcservermonitor.model
 
+import com.example.mcservermonitor.util.BitBuffer
 import java.io.File
-import java.nio.ByteBuffer
+import kotlin.math.ceil
+import kotlin.math.log2
+import kotlin.math.max
 
 val blockUtils = BlockUtil()
 
 class MapDecoder {
 
-    fun decodeRegionFile(file: File, chunkX: Int, chunkY: Int): Array<Array<Array<Block>>> {
+    fun decodeRegionFile(file: File, chunkX: Int, chunkY: Int): Chunk {
         val regionFile = RegionFile(file)
-        val input = regionFile.getChunkData(chunkX, chunkY) ?: return emptyArray()
+        val input = regionFile.getChunkData(chunkX, chunkY) ?: return Chunk(emptyMap())
 
         val chunkSections: MutableList<ChunkSection> = mutableListOf()
         val chunkSectionsData = input.compound.getCompound("Level").getCompoundList("Sections")
@@ -20,27 +23,26 @@ class MapDecoder {
                 palette.addBlock(entry.getString("Name"))
             }
             val blockStates = section.getLongArray("BlockStates")
-            val blockStatesBytes = ByteBuffer.allocate(blockStates.size * Long.SIZE_BYTES)
-            blockStates.forEach { block -> blockStatesBytes.putLong(block) }
-            chunkSections.add(ChunkSection(palette, blockStatesBytes.array()))
+            chunkSections.add(ChunkSection(palette, blockStates))
         }
 
-        return readChunkSection(chunkSections[3])
+        val topSections = mutableMapOf<Int, Section>()
+        topSections[chunkSections.lastIndex - 1] = Section(readChunkSection(chunkSections[chunkSections.lastIndex - 1]))
+        topSections[chunkSections.lastIndex] = Section(readChunkSection(chunkSections[chunkSections.lastIndex]))
+        return Chunk(topSections)
     }
 
     private fun readChunkSection(section: ChunkSection): Array<Array<Array<Block>>> {
         val heightMapIndices = Array(16) { Array(16) { Array(16) { Block.AIR } } }
+        val bitsPerSection: Int =
+            max(ceil(log2(section.palette.usedBlocks.size.toDouble())).toInt(), 4)
+
+        val bitBuffer = BitBuffer(section.blockStates, bitsPerSection)
 
         for (y in 0..15) {
             for (z in 0..15) {
                 for (x in 0..15) {
-                    val blockIndex = (x + z * 16 + y * 16 * 16)
-                    // each block is described as a 4-bit id
-                    val blockPalletId = if (blockIndex % 2 == 0) {
-                        section.blockStates[blockIndex / 2].toInt() and 0xF0 ushr 4
-                    } else {
-                        section.blockStates[blockIndex / 2].toInt() and 0x0F
-                    }
+                    val blockPalletId = bitBuffer.read()
                     heightMapIndices[y][z][x] = section.palette.usedBlocks[blockPalletId]
                 }
             }
@@ -49,7 +51,7 @@ class MapDecoder {
         return heightMapIndices
     }
 
-    data class ChunkSection(val palette: ChunkSectionPalette, val blockStates: ByteArray) {
+    data class ChunkSection(val palette: ChunkSectionPalette, val blockStates: LongArray) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false

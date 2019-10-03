@@ -13,7 +13,7 @@ class ShaderProgram(private val context: Context) {
 
     init {
         if (programHandle == 0) {
-            Log.e("AH_SHIT", "Error creating a shader program")
+            Log.e("SHADER_PROGRAM", "Error creating a shader program")
         }
     }
 
@@ -37,7 +37,7 @@ class ShaderProgram(private val context: Context) {
         val linkStatus = IntArray(1)
         GLES31.glGetProgramiv(programHandle, GLES31.GL_LINK_STATUS, linkStatus, 0)
         if (linkStatus[0] == 0) {
-            Log.e("AH_SHIT", "Error compiling shader program")
+            Log.e("SHADER_PROGRAM", "Error compiling shader program")
         }
 
         if (vertexShaderId != 0) {
@@ -74,7 +74,7 @@ class ShaderProgram(private val context: Context) {
             val compileStatus = IntArray(1)
             GLES31.glGetShaderiv(it, GLES31.GL_COMPILE_STATUS, compileStatus, 0)
             if (compileStatus[0] == 0) {
-                Log.e("SHADER_ERROR", "Error compiling the shader $type")
+                Log.e("SHADER_PROGRAM", "Error compiling the shader $type: ${GLES31.glGetShaderInfoLog(it)}")
             }
 
         }

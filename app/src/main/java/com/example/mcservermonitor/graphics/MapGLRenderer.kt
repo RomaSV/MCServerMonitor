@@ -16,12 +16,13 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
     private lateinit var shaderProgram: ShaderProgram
 
     private var positionHandle: Int = 0
-
     private var colorHandle: Int = 0
+    private var vertexNormalHandle: Int = 0
 
     private var projectionMatrixHandle: Int = 0
     private var modelViewMatrixHandle: Int = 0
     private var textureSamplerHandle: Int = 0
+    private var ambientLightHandle: Int = 0
 
     private var sceneChanged = false
     private val drawnObjects: MutableList<SceneObject> = mutableListOf()
@@ -57,19 +58,27 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         shaderProgram = ShaderProgram(context)
         shaderProgram.createVertexShader(R.raw.vertex)
         shaderProgram.createFragmentShader(R.raw.fragment)
-        shaderProgram.link(attributes = arrayOf("aPosition", "aTexture"))
+        shaderProgram.link(attributes = arrayOf("aPosition", "aTexture", "aVertexNormal"))
         positionHandle = GLES31.glGetAttribLocation(shaderProgram.programHandle, "aPosition")
         colorHandle = GLES31.glGetAttribLocation(shaderProgram.programHandle, "aTexture")
+        vertexNormalHandle =
+            GLES31.glGetAttribLocation(shaderProgram.programHandle, "aVertexNormal")
         projectionMatrixHandle =
             GLES31.glGetUniformLocation(shaderProgram.programHandle, "uProjectionMatrix")
-        modelViewMatrixHandle = GLES31.glGetUniformLocation(shaderProgram.programHandle, "uModelViewMatrix")
+        modelViewMatrixHandle =
+            GLES31.glGetUniformLocation(shaderProgram.programHandle, "uModelViewMatrix")
         textureSamplerHandle =
             GLES31.glGetUniformLocation(shaderProgram.programHandle, "uTextureSampler")
+        ambientLightHandle =
+            GLES31.glGetUniformLocation(shaderProgram.programHandle, "uAmbientLight")
 
         textureHandle = loadTexture(context, R.drawable.textures)
-        shaderAttributes = intArrayOf(positionHandle, colorHandle)
+        shaderAttributes = intArrayOf(positionHandle, colorHandle, vertexNormalHandle)
 
         GLES31.glEnable(GLES31.GL_DEPTH_TEST)
+        GLES31.glEnable(GLES31.GL_BLEND)
+        GLES31.glBlendFunc(GLES31.GL_SRC_ALPHA, GLES31.GL_ONE_MINUS_SRC_ALPHA)
+        GLES31.glDepthMask(true)
 
         ready = true
     }
@@ -104,11 +113,12 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
         shaderProgram.bind()
 
-        GLES31.glUniformMatrix4fv(projectionMatrixHandle, 1, false, getProjectionMatrix(), 0)
-        GLES31.glUniform1i(textureSamplerHandle, 0)
-
         calcViewMatrix(scene.camera)
         calcProjectionMatrix(ratio, -10000f, 10000f, scene.camera.scale, orthoMode)
+
+        GLES31.glUniform1i(textureSamplerHandle, 0)
+        GLES31.glUniform3f(ambientLightHandle, 0.8f, 0.8f, 0.8f)
+        GLES31.glUniformMatrix4fv(projectionMatrixHandle, 1, false, getProjectionMatrix(), 0)
 
         for (sceneObject in drawnObjects) {
             calcModelViewMatrix(sceneObject, getViewMatrix())

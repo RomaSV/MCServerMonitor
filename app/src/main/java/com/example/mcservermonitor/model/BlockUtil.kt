@@ -31,9 +31,9 @@ enum class Block(val mcName: String, val textureAtlasPos: BlockTexturePositions)
     GRASS_BLOCK("minecraft:grass_block", BlockTexturePositions(3, 0, 0, 0, 2, 0)),
     GRASS("minecraft:grass", BlockTexturePositions(-1, -1)),
     BIRCH_LOG("minecraft:birch_log", BlockTexturePositions(8, 1, 9, 1)),
-    BIRCH_LEAVES("minecraft:birch_leaves", BlockTexturePositions(3, 8)),
+    BIRCH_LEAVES("minecraft:birch_leaves", BlockTexturePositions(16, 1)),
     OAK_LOG("minecraft:oak_log", BlockTexturePositions(4, 1, 5, 1)),
-    OAK_LEAVES("minecraft:oak_leaves", BlockTexturePositions(2, 8)),
+    OAK_LEAVES("minecraft:oak_leaves", BlockTexturePositions(16, 0)),
     POPPY("minecraft:poppy", BlockTexturePositions(-1, -1))
 }
 
