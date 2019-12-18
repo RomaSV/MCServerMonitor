@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:columnCount="2">
+
+        <TableRow android:minHeight="120dp">
+
+            <Button
+                android:id="@+id/btn_map_viewer"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="@string/btn_map_viewer_text" />
+
+            <Button
+                android:id="@+id/btn_players_info"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="@string/btn_players_info_text" />
+        </TableRow>
+
+        <TableRow android:minHeight="120dp">
+
+            <Button
+                android:id="@+id/btn_server_settings"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="@string/btn_server_settings_text" />
+
+            <Button
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="@string/btn_placeholder_text" />
+        </TableRow>
+
+    </TableLayout>
+
+</LinearLayout>

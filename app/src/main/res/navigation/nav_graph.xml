@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainMenuFragment">
+
+    <fragment
+        android:id="@+id/mainMenuFragment"
+        android:name="com.example.mcservermonitor.MainMenuFragment"
+        android:label="fragment_main_menu"
+        tools:layout="@layout/fragment_main_menu" >
+        <action
+            android:id="@+id/action_mainMenuFragment_to_mapViewerParamsFragment"
+            app:destination="@id/mapViewerParamsFragment" />
+        <action
+            android:id="@+id/action_mainMenuFragment_to_playersInfoFragment"
+            app:destination="@id/playersInfoFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/mapViewerParamsFragment"
+        android:name="com.example.mcservermonitor.MapViewerParamsFragment"
+        android:label="fragment_map_viewer_params"
+        tools:layout="@layout/fragment_map_viewer_params" >
+        <action
+            android:id="@+id/action_mapViewerParamsFragment_to_mapViewerFragment"
+            app:destination="@id/mapViewerFragment"
+            app:popUpTo="@+id/mainMenuFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/mapViewerFragment"
+        android:name="com.example.mcservermonitor.MapViewerFragment"
+        android:label="fragment_map_viewer"
+        tools:layout="@layout/fragment_map_viewer" />
+    <fragment
+        android:id="@+id/playersInfoFragment"
+        android:name="com.example.mcservermonitor.PlayersInfoFragment"
+        android:label="fragment_players_info"
+        tools:layout="@layout/fragment_players_info" />
+</navigation>

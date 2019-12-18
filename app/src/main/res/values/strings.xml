@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">MCServerMonitor</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="btn_map_viewer_text">Map Viewer</string>
+    <string name="btn_players_info_text">Players</string>
+    <string name="btn_server_settings_text">Settings</string>
+    <string name="btn_placeholder_text">Later...</string>
+    <string name="btn_show_map_text">Show me a map</string>
 </resources>

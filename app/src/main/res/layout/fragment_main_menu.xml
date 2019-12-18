@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainMenuFragment">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:src="@drawable/banner_placeholder" />
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:columnCount="2">
+
+        <TableRow android:minHeight="100dp">
+
+            <Button
+                android:id="@+id/btn_map_viewer"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="@string/btn_map_viewer_text"
+                android:textColor="@color/menuItemText"
+                android:background="@drawable/menu_texture"/>
+
+            <Button
+                android:id="@+id/btn_players_info"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="@string/btn_players_info_text"
+                android:textColor="@color/menuItemText"
+                android:background="@drawable/menu_texture"/>
+        </TableRow>
+
+        <TableRow android:minHeight="100dp">
+
+            <Button
+                android:id="@+id/btn_server_settings"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="@string/btn_server_settings_text"
+                android:textColor="@color/menuItemText"
+                android:background="@drawable/menu_texture"/>
+
+            <Button
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="@string/btn_placeholder_text"
+                android:textColor="@color/menuItemText"
+                android:background="@drawable/menu_texture"/>
+        </TableRow>
+
+    </TableLayout>
+
+
+</LinearLayout>
