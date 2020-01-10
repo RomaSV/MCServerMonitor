@@ -17,7 +17,6 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
     private var positionHandle: Int = 0
     private var colorHandle: Int = 0
-    private var vertexNormalHandle: Int = 0
 
     private var projectionMatrixHandle: Int = 0
     private var modelViewMatrixHandle: Int = 0
@@ -58,11 +57,9 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         shaderProgram = ShaderProgram(context)
         shaderProgram.createVertexShader(R.raw.vertex)
         shaderProgram.createFragmentShader(R.raw.fragment)
-        shaderProgram.link(attributes = arrayOf("aPosition", "aTexture", "aVertexNormal"))
+        shaderProgram.link(attributes = arrayOf("aPosition", "aTexture"))
         positionHandle = GLES31.glGetAttribLocation(shaderProgram.programHandle, "aPosition")
         colorHandle = GLES31.glGetAttribLocation(shaderProgram.programHandle, "aTexture")
-        vertexNormalHandle =
-            GLES31.glGetAttribLocation(shaderProgram.programHandle, "aVertexNormal")
         projectionMatrixHandle =
             GLES31.glGetUniformLocation(shaderProgram.programHandle, "uProjectionMatrix")
         modelViewMatrixHandle =
@@ -73,7 +70,7 @@ class MapGLRenderer(private val context: Context) : GLSurfaceView.Renderer {
             GLES31.glGetUniformLocation(shaderProgram.programHandle, "uAmbientLight")
 
         textureHandle = loadTexture(context, R.drawable.textures)
-        shaderAttributes = intArrayOf(positionHandle, colorHandle, vertexNormalHandle)
+        shaderAttributes = intArrayOf(positionHandle, colorHandle)
 
         GLES31.glEnable(GLES31.GL_DEPTH_TEST)
         GLES31.glEnable(GLES31.GL_BLEND)

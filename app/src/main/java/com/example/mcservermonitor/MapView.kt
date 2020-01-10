@@ -109,13 +109,11 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
 
             scene.clear()
 
-            val mapDecoder = MapDecoder()
+            val mapDecoder = MapDecoder(regionFile)
 
             for (z in 0..6) {
                 for (x in 0..6) {
-                    val chunk = mapDecoder.decodeRegionFile(
-                        regionFile, x, z
-                    )
+                    val chunk = mapDecoder.decodeRegionFile(x, z)
 
                     val chunkMesh = ChunkMesh(chunk, renderer[0].textureHandle)
                     val chunkObj = SceneObject(chunkMesh.mesh)

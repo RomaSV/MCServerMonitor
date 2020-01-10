@@ -15,16 +15,16 @@ class ChunkMesh(private val chunk: Chunk, texturesHolder: Int) {
         var cubesCount = 0
         val vertexPositions = mutableListOf<Float>()
         val texturePositions = mutableListOf<Float>()
-        val normals = mutableListOf<Float>()
         val indices = mutableListOf<Int>()
         for (section in chunk.sections.keys) {
             for (y in 0..15) {
                 for (z in 0..15) {
                     for (x in 0..15) {
-                        val block =
-                            chunk.sections[section]!!.blocks[y][z][x] // section shouldn't be null
-                        if (block != Block.AIR && block.textureAtlasPos.sideX != -1
-                            && isVisible(section, x, y, z)
+                        val block = chunk.sections[section]!!.blocks[y][z][x] // section shouldn't be null
+                        if (
+                            block != Block.AIR &&
+                            block.textureAtlasPos.sideX != -1 &&
+                            isVisible(section, x, y, z)
                         ) {
                             cubesCount++
                             vertexPositions.addAll(
@@ -34,7 +34,6 @@ class ChunkMesh(private val chunk: Chunk, texturesHolder: Int) {
                                     z
                                 ).toList()
                             )
-                            normals.addAll(getCubeNormals().toList())
                             texturePositions.addAll(getCubeTexturePositions(block.textureAtlasPos).toList())
                             indices.addAll(getCubeIndices(cubesCount))
                         }
@@ -46,7 +45,6 @@ class ChunkMesh(private val chunk: Chunk, texturesHolder: Int) {
         val meshData = Mesh.MeshData(
             vertexPositions.toFloatArray(),
             texturePositions.toFloatArray(),
-            normals.toFloatArray(),
             indices.toIntArray(),
             texturesHolder
         )
@@ -153,15 +151,6 @@ class ChunkMesh(private val chunk: Chunk, texturesHolder: Int) {
         texture.sideX * blockTextureSizeX, (texture.sideY + 1) * blockTextureSizeY,
         texture.sideX * blockTextureSizeX, texture.sideY * blockTextureSizeY,
         (texture.sideX + 1) * blockTextureSizeX, texture.sideY * blockTextureSizeY
-    )
-
-    private fun getCubeNormals(): FloatArray = floatArrayOf(
-        0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f,
-        0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f,
-        1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f,
-        -1f, 0f, 0f, -1f, 0f, 0f, -1f, 0f, 0f, -1f, 0f, 0f,
-        0f, -1f, 0f, 0f, -1f, 0f, 0f, -1f, 0f, 0f, -1f, 0f,
-        0f, 0f, -1f, 0f, 0f, -1f, 0f, 0f, -1f, 0f, 0f, -1f
     )
 
     private fun getCubeIndices(cubesCount: Int): List<Int> {

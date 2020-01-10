@@ -8,16 +8,19 @@ import kotlin.math.max
 
 val blockUtils = BlockUtil()
 
-class MapDecoder {
+class MapDecoder(inputFile: File) {
 
-    fun decodeRegionFile(file: File, chunkX: Int, chunkY: Int): Chunk {
-        val regionFile = RegionFile(file)
+    private val regionFile: RegionFile = RegionFile(inputFile)
+
+    fun decodeRegionFile(chunkX: Int, chunkY: Int): Chunk {
         val input = regionFile.getChunkData(chunkX, chunkY) ?: return Chunk(emptyMap())
 
         val chunkSections: MutableList<ChunkSection> = mutableListOf()
         val chunkSectionsData = input.compound.getCompound("Level").getCompoundList("Sections")
+        var sectionsCount = 0
         for (section in chunkSectionsData) {
             if (!section.containsKey("Palette")) continue
+            sectionsCount++
             val palette = ChunkSectionPalette()
             section.getCompoundList("Palette").forEach { entry ->
                 palette.addBlock(entry.getString("Name"))
@@ -33,22 +36,36 @@ class MapDecoder {
     }
 
     private fun readChunkSection(section: ChunkSection): Array<Array<Array<Block>>> {
-        val heightMapIndices = Array(16) { Array(16) { Array(16) { Block.AIR } } }
         val bitsPerSection: Int =
             max(ceil(log2(section.palette.usedBlocks.size.toDouble())).toInt(), 4)
 
         val bitBuffer = BitBuffer(section.blockStates, bitsPerSection)
 
-        for (y in 0..15) {
-            for (z in 0..15) {
-                for (x in 0..15) {
-                    val blockPalletId = bitBuffer.read()
-                    heightMapIndices[y][z][x] = section.palette.usedBlocks[blockPalletId]
-                }
-            }
+        val heightMapIndices = Array(16 * 16 * 16) { Block.AIR }
+
+        for (i in 0 until 16 * 16 * 16) {
+            val blockPalletId = bitBuffer.read()
+            val block = section.palette.usedBlocks[blockPalletId]
+            heightMapIndices[i] = block
         }
 
-        return heightMapIndices
+        // Treat hidden blocks like they are air
+        val optimizedIndices = Array(16) { Array(16) { Array(16) { Block.AIR } } }
+        var hidden: Boolean
+
+        for (y in 15 downTo 0) {
+            hidden = true
+            for (z in 0..15) {
+                for (x in 0..15) {
+                    val block = heightMapIndices[x + 16 * (z + 16 * y)]
+                    optimizedIndices[y][z][x] = block
+                    if (block == Block.AIR) hidden = false
+                }
+            }
+            if (hidden) break
+        }
+
+        return optimizedIndices
     }
 
     data class ChunkSection(val palette: ChunkSectionPalette, val blockStates: LongArray) {

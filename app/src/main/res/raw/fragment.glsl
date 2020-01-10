@@ -4,7 +4,6 @@ uniform sampler2D uTextureSampler;
 uniform vec3 uAmbientLight;
 
 varying vec2 vTexture;
-varying vec3 vModelViewVertexNormal;
 varying vec3 vModelViewVertexPos;
 
 void main() {
