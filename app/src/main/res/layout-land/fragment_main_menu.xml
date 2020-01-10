@@ -15,13 +15,17 @@
                 android:id="@+id/btn_map_viewer"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="@string/btn_map_viewer_text" />
+                android:text="@string/btn_map_viewer_text"
+                android:textColor="@color/menuItemText"
+                android:background="@drawable/menu_texture"/>
 
             <Button
                 android:id="@+id/btn_players_info"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="@string/btn_players_info_text" />
+                android:text="@string/btn_players_info_text"
+                android:textColor="@color/menuItemText"
+                android:background="@drawable/menu_texture"/>
         </TableRow>
 
         <TableRow android:minHeight="120dp">
@@ -30,12 +34,16 @@
                 android:id="@+id/btn_server_settings"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="@string/btn_server_settings_text" />
+                android:text="@string/btn_server_settings_text"
+                android:textColor="@color/menuItemText"
+                android:background="@drawable/menu_texture"/>
 
             <Button
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="@string/btn_placeholder_text" />
+                android:text="@string/btn_placeholder_text"
+                android:textColor="@color/menuItemText"
+                android:background="@drawable/menu_texture"/>
         </TableRow>
 
     </TableLayout>

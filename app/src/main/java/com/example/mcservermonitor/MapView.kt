@@ -8,7 +8,7 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.widget.ProgressBar
 import com.example.mcservermonitor.graphics.*
-import com.example.mcservermonitor.model.*
+import com.example.mcservermonitor.model.MapDecoder
 import java.io.File
 import java.io.FileOutputStream
 
@@ -111,15 +111,15 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
 
             val mapDecoder = MapDecoder()
 
-            for (z in 0..7) {
-                for (x in 0..7) {
+            for (z in 0..6) {
+                for (x in 0..6) {
                     val chunk = mapDecoder.decodeRegionFile(
                         regionFile, x, z
                     )
 
                     val chunkMesh = ChunkMesh(chunk, renderer[0].textureHandle)
                     val chunkObj = SceneObject(chunkMesh.mesh)
-                    chunkObj.position = floatArrayOf((x - 1f) * 16, -4f * 16, (z - 1f) * 16)
+                    chunkObj.position = floatArrayOf((x - 3f) * 16, -4f * 16, (z - 3f) * 16)
 
                     scene.addSceneObject(chunkObj)
                     publishProgress(x + z * 16)

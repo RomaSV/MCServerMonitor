@@ -2,18 +2,15 @@ package com.example.mcservermonitor
 
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.mcservermonitor.ftp.getPlayerUIDs
 import com.example.mcservermonitor.model.getUserNamesByUIDS
-import com.example.mcservermonitor.util.players
 import kotlinx.android.synthetic.main.fragment_players_info.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 
 class PlayersInfoFragment : Fragment() {
@@ -33,7 +30,12 @@ class PlayersInfoFragment : Fragment() {
 
         scope.launch {
             val data = withContext(Dispatchers.IO) {
-                return@withContext getUserNamesByUIDS(players.toTypedArray())
+                val ids = getPlayerUIDs()
+                if (ids != null) {
+                    return@withContext getUserNamesByUIDS(ids)
+                } else {
+                    return@withContext emptyArray<String>()
+                }
             }
 
             val viewManager = LinearLayoutManager(context)
@@ -45,6 +47,11 @@ class PlayersInfoFragment : Fragment() {
             }
         }
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.cancel()
     }
 
 
