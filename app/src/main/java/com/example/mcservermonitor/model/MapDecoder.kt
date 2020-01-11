@@ -17,10 +17,9 @@ class MapDecoder(inputFile: File) {
 
         val chunkSections: MutableList<ChunkSection> = mutableListOf()
         val chunkSectionsData = input.compound.getCompound("Level").getCompoundList("Sections")
-        var sectionsCount = 0
+
         for (section in chunkSectionsData) {
             if (!section.containsKey("Palette")) continue
-            sectionsCount++
             val palette = ChunkSectionPalette()
             section.getCompoundList("Palette").forEach { entry ->
                 palette.addBlock(entry.getString("Name"))
@@ -30,6 +29,7 @@ class MapDecoder(inputFile: File) {
         }
 
         val topSections = mutableMapOf<Int, Section>()
+        topSections[chunkSections.lastIndex - 2] = Section(readChunkSection(chunkSections[chunkSections.lastIndex - 2]))
         topSections[chunkSections.lastIndex - 1] = Section(readChunkSection(chunkSections[chunkSections.lastIndex - 1]))
         topSections[chunkSections.lastIndex] = Section(readChunkSection(chunkSections[chunkSections.lastIndex]))
         return Chunk(topSections)
@@ -64,7 +64,6 @@ class MapDecoder(inputFile: File) {
             }
             if (hidden) break
         }
-
         return optimizedIndices
     }
 

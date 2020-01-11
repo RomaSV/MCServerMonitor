@@ -1,12 +1,16 @@
 package com.example.mcservermonitor
 
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import com.example.mcservermonitor.util.PREF_COORDINATE_X
+import com.example.mcservermonitor.util.PREF_COORDINATE_Z
 import kotlinx.android.synthetic.main.fragment_map_viewer.*
 
 
@@ -22,11 +26,14 @@ class MapViewerFragment : Fragment() {
         }
     }
 
+    lateinit var sharedPreferences: SharedPreferences
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
+        sharedPreferences = this.activity!!.getPreferences(Context.MODE_PRIVATE)
         return inflater.inflate(R.layout.fragment_map_viewer, container, false)
     }
 
@@ -36,6 +43,8 @@ class MapViewerFragment : Fragment() {
 
         map_viewer_progress_bar.max = 64
         map_viewer_map.progressBar = map_viewer_progress_bar
+        map_viewer_map.desiredX = sharedPreferences.getInt(PREF_COORDINATE_X, 0)
+        map_viewer_map.desiredZ = sharedPreferences.getInt(PREF_COORDINATE_Z, 0)
     }
 
 

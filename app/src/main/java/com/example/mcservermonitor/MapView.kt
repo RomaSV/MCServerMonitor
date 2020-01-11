@@ -4,13 +4,15 @@ import android.content.Context
 import android.opengl.GLSurfaceView
 import android.os.AsyncTask
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.widget.ProgressBar
+import com.example.mcservermonitor.ftp.getRegionFileByChunk
 import com.example.mcservermonitor.graphics.*
 import com.example.mcservermonitor.model.MapDecoder
 import java.io.File
-import java.io.FileOutputStream
+import kotlin.math.floor
 
 class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
     GLSurfaceView(context, attrs) {
@@ -25,9 +27,11 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
     private val renderer: MapGLRenderer
 
     // Temp file to test map construction
-    private val regionFile: File
+    private lateinit var regionFile: File
 
     lateinit var progressBar: ProgressBar
+    var desiredX: Int = 0
+    var desiredZ: Int = 0
 
     val scene = Scene(
         Camera(
@@ -42,19 +46,16 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         renderer = MapGLRenderer(context)
         setRenderer(renderer)
         scaleGestureDetector = ScaleGestureDetector(context, ScaleListener())
+    }
 
-        regionFile = createTempFile("region", "mca", context.cacheDir)
-        val inputStream = context.assets.open("test-region.mca")
-        val outputStream = FileOutputStream(regionFile)
-        val buffer = ByteArray(1024 * 512)
-        var count = inputStream.read(buffer)
-        while (count != -1) {
-            outputStream.write(buffer, 0, count)
-            count = inputStream.read(buffer)
-        }
-        outputStream.close()
-        inputStream.close()
-
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        val rX = floor(desiredX / (16 * 32.0)).toInt()
+        val rZ = floor(desiredZ / (16 * 32.0)).toInt()
+        val fileName = "r.$rX.$rZ.mca"
+        Log.i("MC-INFO", fileName)
+        Log.i("MC-INFO", "Desired coords: $desiredX, $desiredZ")
+        regionFile = File(context.filesDir, fileName)
         ConstructMapTask().execute(renderer)
     }
 
@@ -103,17 +104,26 @@ class MapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
     inner class ConstructMapTask : AsyncTask<MapGLRenderer, Int, Any>() {
 
         override fun doInBackground(vararg renderer: MapGLRenderer) {
-            while (!renderer[0].ready) {
-                Thread.sleep(100)
+
+            if (!regionFile.exists()) {
+                val success = getRegionFileByChunk(desiredX / 16, desiredZ / 16, regionFile)
+                Log.i("MC-INFO", "Region downloaded: $success")
             }
 
             scene.clear()
-
             val mapDecoder = MapDecoder(regionFile)
+
+            var startX = (desiredX / 16) % 32
+            var startZ = (desiredZ / 16) % 32
+            if (startX < 0) startX += 32
+            if (startZ < 0) startZ += 32
+            Log.i("MC-INFO", "StartX: $startX, StartZ: $startZ")
+
 
             for (z in 0..6) {
                 for (x in 0..6) {
-                    val chunk = mapDecoder.decodeRegionFile(x, z)
+                    Log.i("MC-INFO", "Constructing a chunk at ($x,$z)")
+                    val chunk = mapDecoder.decodeRegionFile(x + startX, z + startZ)
 
                     val chunkMesh = ChunkMesh(chunk, renderer[0].textureHandle)
                     val chunkObj = SceneObject(chunkMesh.mesh)
